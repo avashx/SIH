@@ -8,10 +8,8 @@ exposure screening across Sikkim, India.
 ![Python 3.12](https://img.shields.io/badge/python-3.12-3776ab)
 [![License: MIT](https://img.shields.io/badge/license-MIT-8a8f8d)](LICENSE)
 
-### 🔗 Live demo — **https://sikkim-landslide.onrender.com/**
+### Live demo — **https://sikkim-landslide.onrender.com/**
 
-_No installation needed. The instance sleeps when idle, so the first request may take up to a
-minute to wake._
 
 ![The five-class risk surface over Sikkim, with hotspot markers and the category rail](assets/screenshots/01-risk-map.png)
 
@@ -119,25 +117,14 @@ the human-footprint layers — the evidence behind the colour, not just the colo
 
 ![Point inspector showing every conditioning-factor value at one clicked pixel](assets/screenshots/02-click-inspect.png)
 
-### 918 ranked hotspots
 
-Every Very-High patch, ranked by exposure rather than by area, so the list opens on what is
-actually at stake.
-
-![The Very-High patches as a ranked list, sized by area and warmed by exposure](assets/screenshots/03-hotspots.png)
-
-Open one and it carries its extent, its susceptibility statistics, its terrain, and an itemised
+it carries its extent, its susceptibility statistics, its terrain, and an itemised
 account of what sits inside it — built-up hectares, cropland, road proximity, night-lights total,
 and the count of past landslides mapped within the patch.
 
 ![One hotspot: extent, susceptibility, terrain and what is exposed inside it](assets/screenshots/07-hotspot-detail.png)
 
-### "Sikkim only" view
 
-Hide all surrounding geography and reference borders to present the study area in isolation — the
-view for a slide, a briefing or a printed page.
-
-![The study area isolated, with surrounding states and borders hidden](assets/screenshots/04-sikkim-only.png)
 
 ### Nine conditioning factors as toggleable layers
 

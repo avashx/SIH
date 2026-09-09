@@ -1,0 +1,21 @@
+# The raw delivery is 881 MB and is not needed to build the image.
+Risk_hotspots/
+data/raw/
+data/interim/
+
+.venv/
+.git/
+.gitignore
+__pycache__/
+*.pyc
+.pytest_cache/
+tests/
+notebooks/
+docs/
+info.md
+*.md
+!README.md
+.DS_Store
+node_modules/
+Makefile
+requirements-dev.txt

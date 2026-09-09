@@ -1,0 +1,35 @@
+# ---- raw delivery -----------------------------------------------------------
+# ~880 MB of GeoTIFFs from the shared drive. Never committed; see docs/DATA.md.
+Risk_hotspots/
+data/raw/
+data/interim/
+
+# ---- python -----------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# ---- node / tooling ---------------------------------------------------------
+node_modules/
+package-lock.json
+
+# ---- os / editor ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# ---- notebooks --------------------------------------------------------------
+.ipynb_checkpoints/
+
+# NOTE: data/processed/ IS committed (~62 MB). It is what makes the repo
+# clone-and-run without the raw delivery. Drop it from the repo and switch to a
+# release asset if it ever becomes a problem.
+
+# Natural Earth downloads are fetched into a temp dir by tools/build_borders.py;
+# only the two generated files under frontend/data/ are committed.

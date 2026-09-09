@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run tests
+        # data/processed/ is committed, so the suite runs without the raw delivery.
+        run: pytest tests/ -q
+
+      - name: Report headline figures
+        run: |
+          python - <<'PY'
+          import json
+          d = json.load(open("data/processed/stats.json"))
+          h = d["validation"]["headline"]
+          print(f"::notice title=Validation::lift {h['lift']}x | AUC {h['auc']} | "
+                f"High+VeryHigh {h['high_and_very_high_area_share']:.1%} of area "
+                f"holds {h['high_and_very_high_landslide_share']:.1%} of mapped landslides")
+          PY
+
+  docker:
+    name: docker build + smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: sikkim-landslide:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Boot the container and hit the real endpoints
+        run: |
+          docker run -d --name app -p 8080:8080 -e PORT=8080 sikkim-landslide:ci
+          for i in $(seq 1 40); do
+            curl -sf http://localhost:8080/healthz >/dev/null && break
+            sleep 2
+          done
+          echo "--- healthz ---"
+          curl -sf http://localhost:8080/healthz | tee /tmp/h.json
+          grep -q '"status":"ok"' /tmp/h.json || { echo "health check failed"; docker logs app; exit 1; }
+
+          echo "--- dashboard ---"
+          # Anchored to the app shell, not to page copy: this grep used to look
+          # for a title string and failed the build the first time the title was
+          # reworded, which says nothing about whether the app is served.
+          curl -sf http://localhost:8080/ > /tmp/index.html
+          grep -q 'id="map"' /tmp/index.html || { echo "no map container"; exit 1; }
+          grep -q 'js/app.js' /tmp/index.html || { echo "no entry module"; exit 1; }
+
+          echo "--- frontend assets ---"
+          for path in css/app.css js/app.js js/map.js img/grain.png \
+                      vendor/maplibre-gl.js fonts/web/CormorantGaramond.woff2; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "http://localhost:8080/$path")
+            echo "  $path -> $code"
+            [ "$code" = "200" ] || exit 1
+          done
+
+          echo "--- a real tile ---"
+          curl -sf -o /tmp/t.png http://localhost:8080/api/tiles/lsm_class/12/3054/1721.png
+          file /tmp/t.png | grep -q PNG || exit 1
+          test "$(stat -c%s /tmp/t.png)" -gt 500 || { echo "tile is blank"; exit 1; }
+
+          echo "--- a point query ---"
+          curl -sf "http://localhost:8080/api/point?lon=88.6138&lat=27.3314" | grep -q '"Very High"' || exit 1
+
+          echo "all container smoke tests passed"
+          docker rm -f app
